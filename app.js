@@ -4,19 +4,19 @@
  * function：Node.js server
  **/
 
+'use strict';
+
 // const
 const DEF_PORT = 3000;
 
 // ■ define module
 const express = require('express'); // express
-const router = express.Router(); // router
 const path = require('path'); // path
-const mysql = require('mysql2'); // mysql
-require('dotenv').config();
+require('dotenv').config(); // dotenv
 
 // logger
-const cLogger = require('../class/myLogger.js');
-const logger = new cLogger('./logs/system.log');
+const cLogger = require('./class/myLogger.js');
+const logger = new cLogger('./public/logs/system.log');
 
 // mysql setting
 const dbSetting = {
@@ -24,20 +24,12 @@ const dbSetting = {
     user: process.env.DEF_USER,
     password: process.env.DEF_PASS,
     database: process.env.DEF_DB,
+    insecureAuth : true,
 };
 
-// passport
-const passport = require('passport'); // passport
-const passportHttp = require('passport-http');
-
-passport.use(new passportHttp.BasicStrategy((username, password, done) => {
-    if (username === 'user' && password == 'pass') {
-        return done(null, true);
-    } else {
-        return done(null, false);
-    }
-  }
-));
+// db
+const DB = require('./class/myDB.js');
+const myDb = new DB(dbSetting);
 
 // express
 const app = express();
@@ -53,28 +45,14 @@ app.use(express.static(path.join(__dirname, 'public')));
 // top
 app.use("/", require("./router/index.js"));
 
-// mypage
-app.use("/mypage",  passport.authenticate('basic', { session: false, }), (req, res) => {
-    require("./router/mypage.js");
-});
+// search
+app.use("/search", require("./router/search.js"));
 
 // error
 app.use("/err", require("./router/error.js"));
 
-// 404 error
-app.use((req, res, next) => {
-    res.status(404);
-    res.end('my notfound! : ' + req.path);
-});
-
-// 500 error
-app.use((err, req, res, next) => {
-    res.status(500);
-    res.end('my 500 error! : ' + err);
-});
-
 // listen to 3000
 app.listen(DEF_PORT, () => {
     // log
-    console.log(`app listening to http://localhost:${PORT}`);
+    console.log(`app listening to http://localhost:${DEF_PORT}`);
 });
