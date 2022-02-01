@@ -1,3 +1,11 @@
+/**
+ * search.js
+ *
+ * function：db search
+ **/
+
+'use strict';
+
 // define modules
 const router = require('express').Router(); // router
 require('dotenv').config(); // dotenv
@@ -43,7 +51,7 @@ router.get('/site/:column/:word', async(req, res) => {
 });
 
 // product
-router.get('s/product/:column/:word', async(req, res) => {
+router.get('/product/:column/:word', async(req, res) => {
     // column
     const searchCol = req.params.column;
     // word

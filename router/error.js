@@ -1,3 +1,11 @@
+/**
+ * error.js
+ *
+ * function：error
+ **/
+
+'use strict';
+
 // define modules
 const express = require('express');
 const router = express.Router();
