@@ -13,10 +13,9 @@ const ALLOW_INSECURE = '--allow-running-insecure-content'; // allow insecure con
 const NO_SANDBOX = '--no-sandbox'; // no sandbox
 const DISABLE_SANDBOX = '--disable-setuid-sandbox'; // no setup sandbox
 const DISABLE_EXTENSIONS = '--disable-extensions'; // disable extension
-const CHROME_EXEC_PATH = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path1
 
 // define modules
-const puppeteer = require('puppeteer-core'); // Puppeteer for scraping
+const puppeteer = require('puppeteer'); // Puppeteer for scraping
 
 // logger
 const cLogger = require('../class/myLogger.js');
@@ -28,31 +27,55 @@ class Scrape {
     constructor() {
         this.browser = puppeteer.launch({
             headless: true, // no display mode
-            executablePath: CHROME_EXEC_PATH, // chrome.exe path
             args: [ALLOW_INSECURE, NO_SANDBOX, DISABLE_EXTENSIONS, DISABLE_SANDBOX],
         });
     }
 
     // search
-    search = async(...arg) => {
+    doScrape = ...arg => {
+        let dataArray = [];
         return new Promise(async(resolve) => {
             // new browser
             const page = await this.browser.newPage();
             // loop
-            args.forEach(item => {
+            args.forEach(async(item) => {
                 // wait for continue button
                 switch(item.type) {
-                    case 1:
-                        await page.waitForSelector(item.value, {timeout: 10000});
+                    case '1':
+                        await page.goto(item.value);
                         break;
-                    case 2:
-                        await page.waitForSelector(item.value, {timeout: 10000});
+                    case '2':
+                        await page.click(item.value);
                         break;
-                    case 3:
-                        await page.waitForSelector(item.value, {timeout: 10000});
+                    case '3':
+                        await page.type(item.value, item.text)
+                        break;
+                    case '4':
+                        await page.select(item.value, ...item.opts); 
+                        break;
+                    case '5':
+                        await page.keyboard.press(item.value);
+                        break;
+                    case '6':
+                        await page.screenshot({path: item.value})
+                        break;
+                    case 'e':
+                        await page.$eval(item.value, item => {
+                            dataArray.push(item.textContent);
+                        });
+                        break;
+                    case 'w1':
+                        await page.waitForTimeout(item.value);
+                        break;
+                    case 'w2':
+                        await page.waitForSelector(item.value, {timeout: item.timeout});
+                        break;
+                    case 'w3':
+                        await page.waitForNavigation({waitUntil: 'networkidle2'});
                         break;
                 }
             });
+            resolve(dataArray);
         });
     }
 
