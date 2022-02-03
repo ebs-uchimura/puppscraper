@@ -35,7 +35,7 @@ router.get('/user/:column/:word', async(req, res) => {
     // search
     const resultObj = await myDb.doInquiry("SELECT * FROM ?? WHERE ?? = ?", ['user', searchCol, searchWd]);
     // render
-    res.render('index', {obj: resultObj[0]});
+    res.render('search', {obj: resultObj[0]});
 });
 
 // site
@@ -47,7 +47,7 @@ router.get('/site/:column/:word', async(req, res) => {
     // search
     const resultObj = await myDb.doInquiry("SELECT * FROM ??", ['site', searchCol, searchWd]);
     // render
-    res.render('index', {obj: resultObj[0]});
+    res.render('search', {obj: resultObj[0]});
 });
 
 // product
@@ -59,7 +59,7 @@ router.get('/product/:column/:word', async(req, res) => {
     // search
     const resultObj = await myDb.doInquiry("SELECT * FROM ??", ['product', searchCol, searchWd]);
     // render
-    res.render('index', {obj: resultObj[0]});
+    res.render('search', {obj: resultObj[0]});
 });
 
 module.exports = router;

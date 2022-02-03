@@ -48,6 +48,9 @@ app.use("/", require("./router/index.js"));
 // search
 app.use("/search", require("./router/search.js"));
 
+// scrape
+app.use("/scrape", require("./router/scrape.js"));
+
 // error
 app.use("/err", require("./router/error.js"));
 

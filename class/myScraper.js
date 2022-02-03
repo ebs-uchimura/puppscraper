@@ -23,66 +23,77 @@ const logger = new cLogger('../public/logs/system.log');
 
 class Scrape {
 
+    static browser;
+    static page;
+
     // constractor
     constructor() {
-        this.browser = puppeteer.launch({
-            headless: true, // no display mode
-            args: [ALLOW_INSECURE, NO_SANDBOX, DISABLE_EXTENSIONS, DISABLE_SANDBOX],
+    }
+
+    init() {
+        return new Promise(async(resolve) => {
+            Scrape.browser = await puppeteer.launch({
+                headless: false, // no display mode
+                args: [ALLOW_INSECURE, NO_SANDBOX, DISABLE_EXTENSIONS, DISABLE_SANDBOX],
+            });
+            // new browser
+            Scrape.page = await Scrape.browser.newPage();
+            resolve();
         });
     }
 
     // search
-    doScrape = ...arg => {
-        let dataArray = [];
-        return new Promise(async(resolve) => {
-            // new browser
-            const page = await this.browser.newPage();
-            // loop
-            args.forEach(async(item) => {
-                // wait for continue button
-                switch(item.type) {
-                    case '1':
-                        await page.goto(item.value);
-                        break;
-                    case '2':
-                        await page.click(item.value);
-                        break;
-                    case '3':
-                        await page.type(item.value, item.text)
-                        break;
-                    case '4':
-                        await page.select(item.value, ...item.opts); 
-                        break;
-                    case '5':
-                        await page.keyboard.press(item.value);
-                        break;
-                    case '6':
-                        await page.screenshot({path: item.value})
-                        break;
-                    case 'e':
-                        await page.$eval(item.value, item => {
-                            dataArray.push(item.textContent);
-                        });
-                        break;
-                    case 'w1':
-                        await page.waitForTimeout(item.value);
-                        break;
-                    case 'w2':
-                        await page.waitForSelector(item.value, {timeout: item.timeout});
-                        break;
-                    case 'w3':
-                        await page.waitForNavigation({waitUntil: 'networkidle2'});
-                        break;
-                }
-            });
-            resolve(dataArray);
+    doScrape(obj) {
+
+        return new Promise(async(resolve) => {   
+            let dataArray = [];
+            // wait for continue button
+            switch(obj.type) {
+                case '1':
+                    await Scrape.page.goto(obj.value);
+                    resolve();
+                    break;
+                case '2':
+                    await Scrape.page.click(obj.value);
+                    resolve();
+                    break;
+                case '3':
+                    await Scrape.page.type(obj.value, obj.text);
+                    resolve();
+                    break;
+                case '4':
+                    await Scrape.page.select(obj.value, obj.opts); 
+                    resolve();
+                    break;
+                case '5':
+                    await Scrape.page.keyboard.press(obj.value);
+                    resolve();
+                    break;
+                case '6':
+                    await Scrape.page.screenshot({path: obj.value});
+                    resolve();
+                    break;
+                case 'e':
+                    await Scrape.page.$eval(obj.value, obj => {
+                        dataArray.push(obj.textContent);
+                    });
+                    resolve(dataArray);
+                    break;
+                case 'w1':
+                    await Scrape.page.waitForTimeout(obj.value);
+                    resolve();
+                    break;
+                case 'w2':
+                    await Scrape.page.waitForSelector(obj.value, {timeout: obj.timeout});
+                    resolve();
+                    break;
+                case 'w3':
+                    await Scrape.page.waitForNavigation({waitUntil: 'networkidle2'});
+                    resolve();
+                    break;
+            }
         });
     }
-
-    static isEmpty(obj) {
-        return !Object.keys(obj).length; // check whether blank
-    }
-
 }
 
-module.exports = DB;
+module.exports = Scrape;
