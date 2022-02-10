@@ -8,8 +8,8 @@
 
 // constants
 const DEF_NETKEIBA_URL: string = 'https://netkeiba.com';
-const DEF_TRAINING_URL: string = 'https://race.netkeiba.com/race/oikiri.html?race_id='
-const DEF_URL_QUERY: string = '&type=2&rf=shutuba_submenu'
+const DEF_TRAINING_URL: string = 'https://race.netkeiba.com/race/oikiri.html?race_id=';
+const DEF_URL_QUERY: string = '&type=2&rf=shutuba_submenu';
 const TOKYO_ID: string = '2022050104';
 const CHUKYO_ID: string = '2022070112';
 const KOKURA_ID: string = '2022100108';
@@ -20,7 +20,7 @@ const DEF_PORT: number = 3000;
 import * as fs from 'fs'; // fs
 import { Scrape } from './class/myScraper';
 import { dotenv } from 'dotenv';
-dotenv.config()
+dotenv.config();
 
 const scraper = new Scrape();
 
@@ -32,7 +32,7 @@ const getDateTime = (): string => {
     const month: number = today.getMonth() + 1;
     const day: number = today.getDate();
 
-    return `${year}${month}${day}`
+    return `${year}${month}${day}`;
 }
 
 const ACTIVE_ID: string = CHUKYO_ID;
