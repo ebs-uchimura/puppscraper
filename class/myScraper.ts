@@ -8,7 +8,7 @@
 'use strict';
 
 // constants 
-const USER_ROOT_PATH: string = process.env[process.platform == "win32" ? "USERPROFILE" : "HOME"]; // user path
+const USER_ROOT_PATH: string = process.env[process.platform == "win32" ? "USERPROFILE" : "HOME"] ?? ''; // user path
 const CHROME_EXEC_PATH1: string  = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path1
 const CHROME_EXEC_PATH2: string  = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path2
 const CHROME_EXEC_PATH3: string  = '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path3
@@ -196,18 +196,18 @@ export class Scrape {
 }
 
 // get chrome absolute path
-const getChromePath = ():any => {
+const getChromePath = ():string => {
     // chrome tmp path
     const tmpPath: string = path.join(USER_ROOT_PATH, CHROME_EXEC_PATH3);
     // 32bit
     if(fs.existsSync(CHROME_EXEC_PATH1)) {
-        return CHROME_EXEC_PATH1;
+        return CHROME_EXEC_PATH1 ?? '';
     // 64bit
     } else if(fs.existsSync(CHROME_EXEC_PATH2)) {
-        return CHROME_EXEC_PATH2;
+        return CHROME_EXEC_PATH2 ?? '';
     // user path
     } else if(fs.existsSync(tmpPath)) {
-        return tmpPath;
+        return tmpPath ?? '';
     // error
     } else {
         // error logging
