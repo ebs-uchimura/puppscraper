@@ -9,14 +9,17 @@
 
 // constants 
 const USER_ROOT_PATH: string = process.env[process.platform == "win32" ? "USERPROFILE" : "HOME"] ?? ''; // user path
-const CHROME_EXEC_PATH1: string  = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path1
-const CHROME_EXEC_PATH2: string  = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path2
-const CHROME_EXEC_PATH3: string  = '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path3
+const CHROME_EXEC_PATH1: string = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path1
+const CHROME_EXEC_PATH2: string = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path2
+const CHROME_EXEC_PATH3: string = '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path3
 const IGNORE_CERT_ERROR: string = '--ignore-certificate-errors'; // ignore cert-errors
 const ALLOW_INSECURE: string = '--allow-running-insecure-content'; // allow insecure content
 const NO_SANDBOX: string = '--no-sandbox'; // no sandbox
 const DISABLE_SANDBOX: string = '--disable-setuid-sandbox'; // no setup sandbox
 const DISABLE_EXTENSIONS: string = '--disable-extensions'; // disable extension
+const DEFAULT_LATENCY:number = 20; // 20ms
+const DOWNLOAD_SPEED_LIMIT:number = 4 * 1024 * 1024 / 8; // 4Mbps
+const UPLOAD_SPEED_LIMIT:number = 2 * 1024 * 1024 / 8; // 2Mbps
 
 // define modules
 import puppeteer from 'puppeteer-core'; // Puppeteer for scraping
@@ -41,13 +44,21 @@ export class Scrape {
                     headless: true, // no display mode
                     executablePath: await getChromePath(), // chrome.exe path
                     ignoreDefaultArgs: [DISABLE_EXTENSIONS], // ignore extensions
-                    args: [ALLOW_INSECURE, NO_SANDBOX, DISABLE_SANDBOX],
+                    args: [ALLOW_INSECURE],
                 });
                 // create new page
                 Scrape.page = await Scrape.browser.newPage();
+                await Scrape.page.setUserAgent('bot');
+                const client = await Scrape.page.target().createCDPSession();
+                await client.send('Network.emulateNetworkConditions', {
+                    offline: false,
+                    latency: DEFAULT_LATENCY, 
+                    downloadThroughput: DOWNLOAD_SPEED_LIMIT, 
+                    uploadThroughput: UPLOAD_SPEED_LIMIT, 
+                });
                 resolve();
             } catch(e) {
-                console.log(e);
+                console.log();
             }
         });
     }
@@ -56,7 +67,7 @@ export class Scrape {
     doGo(targetPage: string):Promise<void> {
         return new Promise(async(resolve) => { 
             try {
-                await Scrape.page.goto(targetPage);
+                await Scrape.page.goto(targetPage, { waitUntil: 'networkidle2' });
                 resolve();
             } catch(e) {
                 console.log(e);
@@ -131,7 +142,7 @@ export class Scrape {
     }
 
     // eval
-    doMultiEval(selector: string, property: string): Promise<string> {
+    doMultiEval(selector: string, property: string): Promise<string[]> {
         return new Promise(async(resolve) => { 
             try {         
                 let datas: string[] = [];
@@ -139,7 +150,7 @@ export class Scrape {
                 for(let ls of list) {
                     datas.push(await (await ls.getProperty(property)).jsonValue());
                 }
-                resolve(datas.join());
+                resolve(datas);
             } catch(e) {
                 console.log(e);
             }
@@ -211,6 +222,7 @@ const getChromePath = ():string => {
     // error
     } else {
         // error logging
-       console.log('8: no chrome path error');
+        return '';
+        console.log('8: no chrome path error');
     }
 }
