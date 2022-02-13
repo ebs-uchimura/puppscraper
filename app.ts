@@ -14,7 +14,7 @@ const DEF_TRAINING_URL: string = 'https://race.netkeiba.com/race/oikiri.html?rac
 // query
 const DEF_URL_QUERY: string = '&type=2&rf=shutuba_submenu';
 // courses
-const COURSE_ARRAY: string[] = ['阪神', ' 小倉'];
+const COURSE_ARRAY: string[] = ['阪神', '小倉'];
 // tokyo id
 const TOKYO_ID: string = '202205010501';
 // hanshin id
@@ -54,22 +54,37 @@ const getDateTime = (): string => {
     return `${year}${month}${day}`;
 }
 
-const makeEmptyCsv = (filePath: string):Promise<void> => {
+// make empty xlsx
+const makeEmptyXlsx = (filePath: string): Promise<void> => {
     return new Promise(async(resolve, reject) => {  
         try { 
-            if(!fs.existsSync(filePath)) {
-                fs.writeFile(filePath, '', err => {
+            const promise1: Promise<void> = new Promise(async(resolve) => {
+                // if file exists
+                if(fs.existsSync(filePath)) {
+                    // delete file
+                    fs.unlink(filePath, err: unknown => {
+                        if (err) throw err;
+                        console.log('File is deleted successfully.');
+                        // resolved
+                        resolve();
+                    });
+                }
+            });
+            const promise2: Promise<void> = new Promise(async(resolve) => {
+                // create empty file
+                fs.writeFile(filePath, '', err: unknown => {
                     if (err) throw err;
                     console.log('File is created successfully.');
                 });
-            } else{
-                fs.unlink(filePath, err => {
-                    if (err) throw err;
-                    console.log('File is deleted successfully.');
-                });
-            }
-            resolve();
-        } catch(e) {
+                // resolved
+                resolve();
+            });
+            Promise.all([promise1, promise2]).then((): void => {
+                // resolved
+                resolve();
+            });
+        } catch(e: unknown) {
+            // error
             console.log(e);
         }
     });
@@ -111,11 +126,12 @@ const activeIdArray: string[] = [HANSHIN_ID, KOKURA_ID];
         await activeIdArray.forEach(async(val: string, index: number): Promise<void> => {
             // course
             const targetCourse: string = val.slice( 0, -2 );
+            // courceName
             const courseName: string = COURSE_ARRAY[index];
             // csv filename
             const filePath: string = `${OUTPUT_PATH}${courseName}${getDateTime()}.xlsx`;
             // make empty csv
-            await makeEmptyCsv(filePath);
+            await makeEmptyXlsx(filePath);
             // init
             await aggregator.init(filePath);
             // base url
@@ -147,7 +163,7 @@ const activeIdArray: string[] = [HANSHIN_ID, KOKURA_ID];
                         scraper.doSingleEval(`.OikiriDataHead${i} td:nth-child(11)`, 'innerHTML'),
                         // training evaluation
                         scraper.doSingleEval(`.OikiriDataHead${i} td:nth-child(12)`, 'innerHTML'),
-                    ]).then((array1: string[]):void => {
+                    ]).then((array1: string[]): void => {
                         // push results
                         postArray.push(array1);
                     });
@@ -157,7 +173,7 @@ const activeIdArray: string[] = [HANSHIN_ID, KOKURA_ID];
                     postArray.push(rapTimes);
                     // cell color
                     await scraper.doMultiEval(`.OikiriDataHead${i} .TrainingTimeDataList li`, 'className')
-                        .then((array2: string[]):void => {
+                        .then((array2: string[]): void => {
                             // push results
                             postArray.push(array2);
                         });
@@ -166,6 +182,7 @@ const activeIdArray: string[] = [HANSHIN_ID, KOKURA_ID];
                 }
                 // push data
                 await aggregator.writeData(sheetTitleArray, postArray, raceName);
+                // wait 0.5 sec
                 await scraper.doWaitFor(500);
                 console.log(`${raceName} finished`);
             }
@@ -173,7 +190,7 @@ const activeIdArray: string[] = [HANSHIN_ID, KOKURA_ID];
             await aggregator.makeCsv(filePath);
             console.log(`${filePath} finished`);
         });
-    } catch(e) {
+    } catch(e: unknown) {
         // error
         console.log(e);
     } 

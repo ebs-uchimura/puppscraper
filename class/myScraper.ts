@@ -12,14 +12,14 @@ const USER_ROOT_PATH: string = process.env[process.platform == "win32" ? "USERPR
 const CHROME_EXEC_PATH1: string = 'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path1
 const CHROME_EXEC_PATH2: string = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path2
 const CHROME_EXEC_PATH3: string = '\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe'; // chrome.exe path3
-const IGNORE_CERT_ERROR: string = '--ignore-certificate-errors'; // ignore cert-errors
-const ALLOW_INSECURE: string = '--allow-running-insecure-content'; // allow insecure content
-const NO_SANDBOX: string = '--no-sandbox'; // no sandbox
-const DISABLE_SANDBOX: string = '--disable-setuid-sandbox'; // no setup sandbox
 const DISABLE_EXTENSIONS: string = '--disable-extensions'; // disable extension
-const DEFAULT_LATENCY:number = 20; // 20ms
-const DOWNLOAD_SPEED_LIMIT:number = 4 * 1024 * 1024 / 8; // 4Mbps
-const UPLOAD_SPEED_LIMIT:number = 2 * 1024 * 1024 / 8; // 2Mbps
+const ALLOW_INSECURE: string = '--allow-running-insecure-content'; // allow insecure content
+// const IGNORE_CERT_ERROR: string = '--ignore-certificate-errors'; // ignore cert-errors
+// const NO_SANDBOX: string = '--no-sandbox'; // no sandbox
+// const DISABLE_SANDBOX: string = '--disable-setuid-sandbox'; // no setup sandbox
+const DEFAULT_LATENCY: number = 20; // 20ms
+const DOWNLOAD_SPEED_LIMIT: number = 4 * 1024 * 1024 / 8; // 4Mbps
+const UPLOAD_SPEED_LIMIT: number = 2 * 1024 * 1024 / 8; // 2Mbps
 
 // define modules
 import puppeteer from 'puppeteer-core'; // Puppeteer for scraping
@@ -28,7 +28,7 @@ import * as fs from 'fs'; // fs
 
 export class Scrape {
 
-    static browser : puppeteer.Browser;
+    static browser: puppeteer.Browser;
     static page: puppeteer.Page;
 
     // constractor
@@ -36,7 +36,7 @@ export class Scrape {
     }
 
     // initialize
-    init():Promise<void> {
+    init(): Promise<void> {
         return new Promise(async(resolve) => {
             try {
                 // lauch browser
@@ -48,77 +48,91 @@ export class Scrape {
                 });
                 // create new page
                 Scrape.page = await Scrape.browser.newPage();
+                // mimic agent
                 await Scrape.page.setUserAgent('bot');
+                // cdp session
                 const client = await Scrape.page.target().createCDPSession();
+                // emulate condition
                 await client.send('Network.emulateNetworkConditions', {
-                    offline: false,
-                    latency: DEFAULT_LATENCY, 
-                    downloadThroughput: DOWNLOAD_SPEED_LIMIT, 
-                    uploadThroughput: UPLOAD_SPEED_LIMIT, 
+                    offline: false, // not offline
+                    latency: DEFAULT_LATENCY, // default latency
+                    downloadThroughput: DOWNLOAD_SPEED_LIMIT, // download speed limit
+                    uploadThroughput: UPLOAD_SPEED_LIMIT, // upload speed limit
                 });
+                // resolved
                 resolve();
-            } catch(e) {
-                console.log();
+            } catch(e: unknown) {
+                // error
+                console.log(e);
             }
         });
     }
 
     // go page
-    doGo(targetPage: string):Promise<void> {
+    doGo(targetPage: string): Promise<void> {
         return new Promise(async(resolve) => { 
             try {
                 await Scrape.page.goto(targetPage, { waitUntil: 'networkidle2' });
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
     }
 
     // click
-    doClick(elem: string):Promise<void> {
+    doClick(elem: string): Promise<void> {
         return new Promise(async(resolve) => {  
             try { 
                 await Scrape.page.click(elem);
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
     }
 
     // type
-    doType(elem: string, value: string):Promise<void> {
+    doType(elem: string, value: string): Promise<void> {
         return new Promise(async(resolve) => {   
             try {
                 await Scrape.page.type(elem, value);
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
-        
     }
 
     // select
-    doSelect(elem: string):Promise<void> {
+    doSelect(elem: string): Promise<void> {
         return new Promise(async(resolve) => {  
             try {
                 await Scrape.page.select(elem); 
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
     }
 
     // screenshot
-    doScreenshot(path: string):Promise<void> {
+    doScreenshot(path: string): Promise<void> {
         return new Promise(async(resolve) => {   
             try {
                 await Scrape.page.screenshot({path: path});
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
@@ -128,14 +142,20 @@ export class Scrape {
     doSingleEval(selector: string, property: string): Promise<string> {
         return new Promise(async(resolve) => { 
             try {        
+                // target item
                 const item: any = await Scrape.page.$(selector);
+                // if not null
                 if(item !== null) {
+                    // got data
                     const data: any = await (await item.getProperty(property)).jsonValue();
+                    // if got data not null
                     if(data !== null) {
+                        // resolved
                         resolve(data);
                     }
                 }
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
@@ -144,62 +164,76 @@ export class Scrape {
     // eval
     doMultiEval(selector: string, property: string): Promise<string[]> {
         return new Promise(async(resolve) => { 
-            try {         
+            try {
+                // data set
                 let datas: string[] = [];
-                const list = await Scrape.page.$$(selector);
+                // target list
+                const list: any = await Scrape.page.$$(selector);
+                // loop in list
                 for(let ls of list) {
+                    // push to data set
                     datas.push(await (await ls.getProperty(property)).jsonValue());
                 }
+                // resolved
                 resolve(datas);
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
     }
 
     // waitfor
-    doWaitFor(time: number):Promise<void> {
+    doWaitFor(time: number): Promise<void> {
         return new Promise(async(resolve) => {  
             try {
                 await Scrape.page.waitForTimeout(time);
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
     }
 
     // waitSelector
-    doWaitSelector(elem: string, time: number):Promise<void> {
+    doWaitSelector(elem: string, time: number): Promise<void> {
         return new Promise(async(resolve) => {   
             try {
                 await Scrape.page.waitForSelector(elem, {timeout: time});
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
     }
 
     // waitNav
-    doWaitNav():Promise<void> {
+    doWaitNav(): Promise<void> {
         return new Promise(async(resolve) => {   
             try {
                 await Scrape.page.waitForNavigation({waitUntil: 'networkidle2'});
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
     }
 
     // exit
-    doClose():Promise<void> {
+    doClose(): Promise<void> {
         return new Promise(async(resolve) => {   
             try {
                 await Scrape.browser.close();
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }   
         });
@@ -207,7 +241,7 @@ export class Scrape {
 }
 
 // get chrome absolute path
-const getChromePath = ():string => {
+const getChromePath = (): string => {
     // chrome tmp path
     const tmpPath: string = path.join(USER_ROOT_PATH, CHROME_EXEC_PATH3);
     // 32bit

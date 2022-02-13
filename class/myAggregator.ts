@@ -24,8 +24,10 @@ export class Aggregate {
             try { 
                 // set worksheet
                 Aggregate.wb = XLSX.readFile(bookPath);
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
@@ -41,8 +43,10 @@ export class Aggregate {
                 XLSX.utils.book_append_sheet(Aggregate.wb, outWs, sheetName);
                 // add data
                 XLSX.utils.sheet_add_aoa(outWs, twoDimArray,{ origin: { r: 1, c: 0 } });
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
@@ -54,11 +58,12 @@ export class Aggregate {
             try { 
                 // write file
                 XLSX.writeFile(Aggregate.wb, bookPath);
+                // resolved
                 resolve();
-            } catch(e) {
+            } catch(e: unknown) {
+                // error
                 console.log(e);
             }
         });
     }
-
 }
