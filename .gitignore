@@ -1,5 +1,12 @@
+<<<<<<< HEAD
 /node_modules
 .env
 package-lock.json
 /public/logs
 tmp.js
+=======
+/node_modules/
+.env
+package-lock.json
+/public/output/
+>>>>>>> 92d1f1e440898ba506a2306ee167d3fd4186f288
